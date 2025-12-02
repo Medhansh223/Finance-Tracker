@@ -1,5 +1,5 @@
 // app.js
-const API = API_URL;
+const API = window.ENV.API_URL;
 let accessToken = null;
 
 // -----------------------------------------
@@ -65,12 +65,15 @@ async function refreshToken() {
     credentials: "include"
   });
 
-  if (res.ok) {
-    const data = await res.json();
-    accessToken = data.accessToken;
-    localStorage.setItem("accessToken", accessToken);
-  }
+  if (!res.ok) return false;
+
+  const data = await res.json();
+  accessToken = data.accessToken;
+  localStorage.setItem("accessToken", accessToken);
+
+  return true;
 }
+
 
 // -----------------------------------------
 // AUTH REQUEST WRAPPER
@@ -81,15 +84,27 @@ async function authFetch(url, options = {}) {
   const res = await fetch(url, {
     ...options,
     headers: {
-      ...options.headers,
-      Authorization: `Bearer ${accessToken}`
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+      ...(options.headers || {})
     },
     credentials: "include"
   });
 
+  // If expired → try refresh
   if (res.status === 401) {
-    await refreshToken();
-    return authFetch(url, options); // retry
+    const refreshed = await refreshToken();
+
+    // refresh also failed → logout
+    if (!refreshed) {
+      alert("Session expired. Please login again.");
+      localStorage.removeItem("accessToken");
+      window.location.href = "index.html";
+      return;
+    }
+
+    // retry original request
+    return authFetch(url, options);
   }
 
   return res;

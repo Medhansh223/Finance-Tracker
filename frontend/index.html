@@ -2,27 +2,35 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Finance Tracker - Login</title>
-  <link rel="stylesheet" href="styles.css" />
+  <title>Finance Tracker – Login</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<div class="container">
-  <h2>Login</h2>
+<div class="wrapper">
 
-  <input type="email" id="loginEmail" placeholder="Email">
-  <input type="password" id="loginPassword" placeholder="Password">
-  <button onclick="login()">Login</button>
+  <div class="card">
+    <h2>Login</h2>
 
-  <hr>
+    <input type="email" id="loginEmail" placeholder="Email">
+    <input type="password" id="loginPassword" placeholder="Password">
 
-  <h3>Signup</h3>
-  <input type="text" id="signupName" placeholder="Full Name">
-  <input type="email" id="signupEmail" placeholder="Email">
-  <input type="password" id="signupPassword" placeholder="Password">
-  <button onclick="signup()">Signup</button>
+    <button class="btn" onclick="login()">Login</button>
+
+    <div class="divider"></div>
+
+    <h3>Signup</h3>
+
+    <input type="text" id="signupName" placeholder="Full Name">
+    <input type="email" id="signupEmail" placeholder="Email">
+    <input type="password" id="signupPassword" placeholder="Password">
+
+    <button class="btn secondary" type="button" onclick="signup()">Signup</button>
+  </div>
+
 </div>
 
+<script src="config.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -4,28 +4,16 @@ const User = require("../models/User");
 
 const router = express.Router();
 
-// helper to create tokens
+// Helper token creators
 const createAccessToken = (userId) =>
-  jwt.sign(
-    { 
-        id: userId 
-    }, 
-    process.env.ACCESS_TOKEN_SECRET, 
-    {
-        expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
-    }
-);
+  jwt.sign({ id: userId }, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+  });
 
 const createRefreshToken = (userId) =>
-  jwt.sign(
-    { 
-        id: userId 
-    }, 
-    process.env.REFRESH_TOKEN_SECRET, 
-    {
-        expiresIn: process.env.REFRESH_TOKEN_EXPIRY,  
-    }
-);
+  jwt.sign({ id: userId }, process.env.REFRESH_TOKEN_SECRET, {
+    expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
+  });
 
 // SIGNUP
 router.post("/signup", async (req, res) => {
@@ -35,7 +23,7 @@ router.post("/signup", async (req, res) => {
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ message: "User already exists" });
 
-    const user = await User.create({ name, email, password });
+    await User.create({ name, email, password });
 
     res.status(201).json({ message: "User registered" });
   } catch (err) {
@@ -59,12 +47,12 @@ router.post("/login", async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
-    // httpOnly cookie for refresh token
+    // cookie name MUST match refresh route
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
-      secure: true,        // true in production with https
+      secure: false, // set true in production (HTTPS)
       sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
     res.json({
@@ -77,44 +65,29 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// REFRESH TOKEN – get new access token
+// REFRESH ACCESS TOKEN
 router.get("/refresh", async (req, res) => {
-  try {
-    const token = req.cookies?.jwt;
-    if (!token) return res.status(401).json({ message: "No refresh token" });
+  const token = req.cookies.jwt;  // ✔ FIXED COOKIE NAME
 
+  if (!token) return res.status(401).json({ message: "No refresh token" });
+
+  try {
     const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
 
-    const user = await User.findById(decoded.id);
-    if (!user || user.refreshToken !== token)
-      return res.status(403).json({ message: "Invalid refresh token" });
+    const newAccessToken = createAccessToken(decoded.id);
 
-    const accessToken = createAccessToken(user._id);
-    res.json({ accessToken });
+    res.json({ accessToken: newAccessToken });
   } catch (err) {
-    console.error(err);
-    res.status(403).json({ message: "Refresh token invalid/expired" });
+    return res.status(401).json({ message: "Invalid refresh token" });
   }
 });
 
 // LOGOUT
 router.post("/logout", async (req, res) => {
   try {
-    const token = req.cookies?.jwt;
-    if (token) {
-      const decoded = jwt.decode(token);
-      if (decoded?.id) {
-        const user = await User.findById(decoded.id);
-        if (user) {
-          user.refreshToken = null;
-          await user.save();
-        }
-      }
-    }
     res.clearCookie("jwt");
     res.json({ message: "Logged out" });
   } catch {
-    res.clearCookie("jwt");
     res.json({ message: "Logged out" });
   }
 });

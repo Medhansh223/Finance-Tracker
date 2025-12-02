@@ -3,35 +3,51 @@
 <head>
   <meta charset="UTF-8" />
   <title>Finance Tracker - Dashboard</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="dashboard.css" />
 </head>
+
 <body>
 
 <div class="container">
-  <h2>Dashboard</h2>
 
-  <button onclick="logout()">Logout</button>
-  <hr>
+  <!-- Header -->
+  <div class="header">
+    <h2>Dashboard</h2>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
 
-  <h3>Add Transaction</h3>
+  <!-- Add Transaction Card -->
+  <div class="card">
+    <h3>Add Transaction</h3>
 
-  <input type="number" id="amount" placeholder="Amount" />
-  <select id="type">
-    <option value="income">Income</option>
-    <option value="expense">Expense</option>
-  </select>
-  <input type="text" id="category" placeholder="Category" />
-  <input type="text" id="description" placeholder="Description" />
-  <input type="date" id="date" />
+    <div class="form-row">
+      <input type="number" id="amount" placeholder="Amount" required />
+      <select id="type">
+        <option value="income">Income</option>
+        <option value="expense">Expense</option>
+      </select>
+    </div>
 
-  <button onclick="addTransaction()">Add</button>
+    <div class="form-row">
+      <input type="text" id="category" placeholder="Category" required />
+      <input type="text" id="description" placeholder="Description" required />
+    </div>
 
-  <hr>
-  <h3>Your Transactions</h3>
+    <div class="form-row">
+      <input type="date" id="date" required />
+      <button class="btn" onclick="addTransaction()">Add</button>
+    </div>
+  </div>
 
-  <div id="transactions-list"></div>
+  <!-- Transaction List -->
+  <div class="card">
+    <h3>Your Transactions</h3>
+    <div id="transactions-list" class="transactions"></div>
+  </div>
+
 </div>
 
+<script src="config.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
