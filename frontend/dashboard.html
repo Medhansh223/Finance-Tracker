@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Finance Tracker - Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="container">
+  <h2>Dashboard</h2>
+
+  <button onclick="logout()">Logout</button>
+  <hr>
+
+  <h3>Add Transaction</h3>
+
+  <input type="number" id="amount" placeholder="Amount" />
+  <select id="type">
+    <option value="income">Income</option>
+    <option value="expense">Expense</option>
+  </select>
+  <input type="text" id="category" placeholder="Category" />
+  <input type="text" id="description" placeholder="Description" />
+  <input type="date" id="date" />
+
+  <button onclick="addTransaction()">Add</button>
+
+  <hr>
+  <h3>Your Transactions</h3>
+
+  <div id="transactions-list"></div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
