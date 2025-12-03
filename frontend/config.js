@@ -1,3 +1,3 @@
 window.ENV = {
-  API_URL: "http://localhost:8000/api"
+  API_URL: "https://finance-tracker-dacv.onrender.com/api"
 };
