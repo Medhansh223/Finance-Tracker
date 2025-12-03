@@ -11,8 +11,8 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: "http://127.0.0.1:5500",
-  credentials: true        // REQUIRED FOR COOKIES
+  origin: ["http://127.0.0.1:5500", "https://finance-two-pi.vercel.app"],
+  credentials: true
 }));
 
 app.get("/", (req, res) => res.send("Backend running"));
