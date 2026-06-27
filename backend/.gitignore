@@ -1,3 +1,20 @@
-package-lock.json
+# Maven build output
+target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# Secrets
 .env
-node_modules
+.env.local
+
+# OS
+.DS_Store
+
+# Compiled classes (outside target)
+*.class

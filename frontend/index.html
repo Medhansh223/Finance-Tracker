@@ -1,36 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Finance Tracker – Login</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-
-<div class="wrapper">
-
-  <div class="card">
-    <h2>Login</h2>
-
-    <input type="email" id="loginEmail" placeholder="Email">
-    <input type="password" id="loginPassword" placeholder="Password">
-
-    <button class="btn" onclick="login()">Login</button>
-
-    <div class="divider"></div>
-
-    <h3>Signup</h3>
-
-    <input type="text" id="signupName" placeholder="Full Name">
-    <input type="email" id="signupEmail" placeholder="Email">
-    <input type="password" id="signupPassword" placeholder="Password">
-
-    <button class="btn secondary" type="button" onclick="signup()">Signup</button>
-  </div>
-
-</div>
-
-<script src="config.js"></script>
-<script src="app.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Finance Tracker</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
