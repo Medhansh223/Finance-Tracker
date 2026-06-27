@@ -116,14 +116,95 @@ Output is written to `frontend/dist/`. Set `VITE_API_URL` to your deployed API U
 |----------|---------|-------------|
 | `VITE_API_URL` | `http://localhost:8080/api` | Backend API base URL |
 
-### Backend (`backend/src/main/resources/application.yml`)
+### Backend (Render env vars or `application.yml`)
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `server.port` | `8080` | API port |
-| `spring.datasource.*` | see `application.yml` | PostgreSQL connection |
-| `app.session.expiry-hours` | `168` | Session lifetime (7 days) |
-| `app.cors.allowed-origins` | localhost + Vercel | Allowed frontend origins |
+| Setting | Env var | Default | Description |
+|---------|---------|---------|-------------|
+| Server port | `PORT` | `8080` | Set automatically by Render |
+| DB host | `DB_HOST` | `localhost` | PostgreSQL host |
+| DB port | `DB_PORT` | `5432` | PostgreSQL port |
+| DB name | `DB_NAME` | `finance_tracker` | Database name |
+| DB user | `DB_USER` | `finance_user` | Database user |
+| DB password | `DB_PASSWORD` | `finance_pass` | Database password |
+| Session expiry | `SESSION_EXPIRY_HOURS` | `168` | Session lifetime (hours) |
+| CORS origins | `APP_CORS_ALLOWED_ORIGINS` | `http://localhost:5173,...` | Comma-separated frontend URLs |
+
+## Deployment
+
+### Backend on Render
+
+The repo includes a [`render.yaml`](render.yaml) blueprint and [`backend/Dockerfile`](backend/Dockerfile).
+
+#### Option A — Blueprint (recommended)
+
+1. Push this repo to GitHub.
+2. Go to [Render Dashboard](https://dashboard.render.com/) → **New** → **Blueprint**.
+3. Connect the repo — Render reads `render.yaml` and creates:
+   - PostgreSQL database (`finance-tracker-db`)
+   - Web service (`finance-tracker-api`) using Docker
+4. After deploy, copy your API URL (e.g. `https://finance-tracker-api.onrender.com`).
+5. In the Render web service → **Environment**, set:
+
+   ```
+   APP_CORS_ALLOWED_ORIGINS=https://your-app.vercel.app,http://localhost:5173
+   ```
+
+   Replace with your actual Vercel domain.
+
+#### Option B — Manual setup
+
+1. **New PostgreSQL** on Render → note host, port, database, user, password.
+2. **New Web Service** → connect repo:
+   - **Root Directory:** `backend`
+   - **Runtime:** Docker
+   - **Health Check Path:** `/`
+3. Add environment variables:
+
+   | Key | Value |
+   |-----|-------|
+   | `DB_HOST` | from Render Postgres dashboard |
+   | `DB_PORT` | `5432` |
+   | `DB_NAME` | your database name |
+   | `DB_USER` | your database user |
+   | `DB_PASSWORD` | your database password |
+   | `APP_CORS_ALLOWED_ORIGINS` | `https://your-app.vercel.app` |
+
+4. Deploy and copy the service URL.
+
+> **Note:** Render free-tier services spin down after inactivity. The first request after idle may take 30–60 seconds.
+
+---
+
+### Frontend on Vercel
+
+1. Push this repo to GitHub.
+2. Go to [Vercel Dashboard](https://vercel.com/) → **Add New Project** → import the repo.
+3. Configure the project:
+
+   | Setting | Value |
+   |---------|-------|
+   | **Root Directory** | `frontend` |
+   | **Framework Preset** | Vite |
+   | **Build Command** | `npm run build` |
+   | **Output Directory** | `dist` |
+
+4. Add environment variable:
+
+   | Key | Value |
+   |-----|-------|
+   | `VITE_API_URL` | `https://your-app.onrender.com/api` |
+
+5. Deploy and copy your Vercel URL.
+6. Update Render `APP_CORS_ALLOWED_ORIGINS` with that Vercel URL → redeploy backend.
+
+[`frontend/vercel.json`](frontend/vercel.json) handles SPA routing so `/dashboard` works on refresh.
+
+### Deployment order
+
+1. Deploy **backend** on Render → get API URL
+2. Deploy **frontend** on Vercel with `VITE_API_URL=https://<render-url>/api`
+3. Set **`APP_CORS_ALLOWED_ORIGINS`** on Render to your Vercel URL
+4. Redeploy backend if CORS was not set initially
 
 ## API Endpoints
 
