@@ -46,24 +46,30 @@ Finance-Tracker/
 - **Java 21**
 - **Maven 3.9+**
 - **Node.js 18+** and **npm**
-- **Docker** (for PostgreSQL)
+- **PostgreSQL 16+** (locally installed or external instance)
 
 ## Getting Started
 
-### 1. Start the database
+### 1. Configure and Start the database
 
-```bash
-cd backend
-docker compose up -d
+Ensure you have a PostgreSQL server running locally or externally. You should create a database and a user with access to it.
+
+For local development, you can use the default connection values or set environment variables:
+
+| Setting | Env Var | Default |
+|---------|---------|---------|
+| Database | `DB_NAME` | `finance_tracker` |
+| User | `DB_USER` | `finance_user` |
+| Password | `DB_PASSWORD` | `finance_pass` |
+| Host | `DB_HOST` | `localhost` |
+| Port | `DB_PORT` | `5432` |
+
+Create the database `finance_tracker` on your PostgreSQL instance:
+```sql
+CREATE DATABASE finance_tracker;
+CREATE USER finance_user WITH PASSWORD 'finance_pass';
+GRANT ALL PRIVILEGES ON DATABASE finance_tracker TO finance_user;
 ```
-
-This starts PostgreSQL on port `5432` with:
-
-| Setting | Value |
-|---------|-------|
-| Database | `finance_tracker` |
-| User | `finance_user` |
-| Password | `finance_pass` |
 
 ### 2. Start the backend
 
@@ -126,7 +132,7 @@ Output is written to `frontend/dist/`. Set `VITE_API_URL` to your deployed API U
 | DB name | `DB_NAME` | `finance_tracker` | Database name |
 | DB user | `DB_USER` | `finance_user` | Database user |
 | DB password | `DB_PASSWORD` | `finance_pass` | Database password |
-| Session expiry | `SESSION_EXPIRY_HOURS` | `168` | Session lifetime (hours) |
+| Session expiry | `SESSION_EXPIRY_HOURS` | `16` | Session lifetime (hours) |
 | CORS origins | `APP_CORS_ALLOWED_ORIGINS` | `http://localhost:5173,...` | Comma-separated frontend URLs |
 
 ## Deployment
@@ -140,36 +146,34 @@ The repo includes a [`render.yaml`](render.yaml) blueprint and [`backend/Dockerf
 1. Push this repo to GitHub.
 2. Go to [Render Dashboard](https://dashboard.render.com/) → **New** → **Blueprint**.
 3. Connect the repo — Render reads `render.yaml` and creates:
-   - PostgreSQL database (`finance-tracker-db`)
    - Web service (`finance-tracker-api`) using Docker
 4. After deploy, copy your API URL (e.g. `https://finance-tracker-api.onrender.com`).
-5. In the Render web service → **Environment**, set:
-
-   ```
-   APP_CORS_ALLOWED_ORIGINS=https://your-app.vercel.app,http://localhost:5173
-   ```
-
-   Replace with your actual Vercel domain.
+5. In the Render web service → **Environment**, configure the following variables (refer to your external/local database details):
+   - `DB_HOST` (e.g. your hosted PostgreSQL host)
+   - `DB_PORT` (e.g. `5432`)
+   - `DB_NAME` (your database name)
+   - `DB_USER` (your database user)
+   - `DB_PASSWORD` (your database password)
+   - `APP_CORS_ALLOWED_ORIGINS` (e.g. `https://your-app.vercel.app,http://localhost:5173`)
 
 #### Option B — Manual setup
 
-1. **New PostgreSQL** on Render → note host, port, database, user, password.
-2. **New Web Service** → connect repo:
+1. **New Web Service** on Render → connect repo:
    - **Root Directory:** `backend`
    - **Runtime:** Docker
    - **Health Check Path:** `/`
-3. Add environment variables:
+2. Add environment variables:
 
    | Key | Value |
    |-----|-------|
-   | `DB_HOST` | from Render Postgres dashboard |
+   | `DB_HOST` | your external PostgreSQL database host |
    | `DB_PORT` | `5432` |
    | `DB_NAME` | your database name |
    | `DB_USER` | your database user |
    | `DB_PASSWORD` | your database password |
    | `APP_CORS_ALLOWED_ORIGINS` | `https://your-app.vercel.app` |
 
-4. Deploy and copy the service URL.
+3. Deploy and copy the service URL.
 
 > **Note:** Render free-tier services spin down after inactivity. The first request after idle may take 30–60 seconds.
 
@@ -275,7 +279,7 @@ curl -X POST http://localhost:8080/api/transactions \
 flowchart LR
     Browser["React App\n(localhost:5173)"]
     API["Spring Boot API\n(localhost:8080)"]
-    DB["PostgreSQL\n(localhost:5432)"]
+    DB["PostgreSQL\n(localhost:5433)"]
 
     Browser -->|"REST + Bearer token"| API
     API --> DB
@@ -356,6 +360,77 @@ sequenceDiagram
     AuthSvc-->>UI: { sessionToken, user }
     UI->>UI: Store token in localStorage
 ```
+
+## SOLID Architecture & Extension Patterns
+
+This project follows SOLID design principles to ensure maintainability and easy extension.
+
+### 1. SOLID Compliance
+- **S (Single Responsibility)**: Each class has a single, well-defined responsibility (Controllers for routing, Services for business rules, Repositories for data).
+- **O (Open/Closed)**: The system is open for extension but closed for modification. For example, adding new storage types does not require editing existing controllers.
+- **L (Liskov Substitution)**: Any subclass/subtype implementation can substitute its parent interface without altering correctness.
+- **I (Interface Segregation)**: Interfaces are lean and client-focused (e.g., `TransactionService` only exposes required business operations).
+- **D (Dependency Inversion)**: High-level modules (Controllers) depend on abstractions (Interfaces) rather than concrete implementations (Services).
+
+### 2. Strategy Pattern (Transaction Storage)
+We have implemented the **Strategy Pattern** for the transaction storage system. The `TransactionController` serves as the context, communicating with the `TransactionService` interface (the strategy), which is currently implemented by `PostgresqlTransactionService`.
+
+```mermaid
+classDiagram
+    class TransactionController {
+        -TransactionService transactionService
+    }
+    class TransactionService {
+        <<interface>>
+        +createTransaction(Long userId, TransactionRequest request)
+        +getTransactionsForUser(Long userId)
+        +updateTransaction(Long userId, Long transactionId, TransactionRequest request)
+        +deleteTransaction(Long userId, Long transactionId)
+    }
+    class PostgresqlTransactionService {
+        -TransactionRepository transactionRepository
+    }
+    class MongoTransactionService {
+        -MongoTransactionRepository mongoRepository
+    }
+    TransactionController --> TransactionService : uses
+    PostgresqlTransactionService ..|> TransactionService : implements
+    MongoTransactionService ..|> TransactionService : implements (potential)
+```
+
+### 3. Adding a New Database (e.g. MongoDB)
+To add a new database (like MongoDB) alongside or instead of PostgreSQL:
+1. Create a new repository interface extending `MongoRepository`.
+2. Write a new class implementing the `TransactionService` interface (e.g., `MongoTransactionService`).
+3. Handle bean conflicts using Spring's standard annotations:
+   - **`@Qualifier("mongodbService")`**: Explicitly bind to MongoDB.
+   - **`@Primary`**: Declare one database as the default fallback.
+   - **`@ConditionalOnProperty(name="app.database-type", havingValue="mongo")`**: Swap databases dynamically via `application.yml` (e.g., `app.database-type: mongo`).
+
+### 4. Future Considerations (Factory & Builder Patterns)
+- **Factory Pattern**: If you want to dynamically choose the storage engine at runtime based on incoming request parameters or dynamically changing configurations, you can implement a `TransactionServiceFactory` bean that returns the matching `TransactionService` implementation.
+- **Builder Pattern**: For complex entities or DTOs with many fields (such as `Transaction` or `User`), you can implement the Builder Pattern (or use Lombok's `@Builder` annotation) to simplify object construction and eliminate long constructor/setter blocks.
+
+- **Pagination Pattern**: As user transaction data grows, returning all records in a single query degrades performance. To scale, implement Spring Data pagination:
+  * **Repository**: Change queries to accept a `Pageable` parameter and return a `Page<Transaction>`:
+    ```java
+    Page<Transaction> findByUserId(Long userId, Pageable pageable);
+    ```
+  * **Service Interface**: Update signatures to return paginated lists:
+    ```java
+    Page<TransactionResponse> getTransactionsForUser(Long userId, Pageable pageable);
+    ```
+  * **Controller**: Accept `page` and `size` parameters with defaults:
+    ```java
+    @GetMapping
+    public ResponseEntity<Page<TransactionResponse>> getTransactions(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
+        return ResponseEntity.ok(transactionService.getTransactionsForUser(userId, pageable));
+    }
+    ```
 
 ## What Not to Commit
 

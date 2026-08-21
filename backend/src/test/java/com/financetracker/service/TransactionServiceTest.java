@@ -36,7 +36,7 @@ class TransactionServiceTest {
     private UserRepository userRepository;
 
     @InjectMocks
-    private TransactionService transactionService;
+    private PostgresqlTransactionService transactionService;
 
     @Test
     void createTransactionShouldPersistTransactionForUser() {

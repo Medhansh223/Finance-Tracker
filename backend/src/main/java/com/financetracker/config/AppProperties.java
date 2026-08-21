@@ -27,7 +27,7 @@ public class AppProperties {
     }
 
     public static class Session {
-        private int expiryHours = 168;
+        private int expiryHours = 16;
 
         public int getExpiryHours() {
             return expiryHours;
