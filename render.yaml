@@ -1,7 +1,3 @@
-databases:
-  - name: finance-tracker-db-new
-    plan: free
-
 services:
   - type: web
     name: finance-tracker-api
@@ -14,25 +10,16 @@ services:
       - key: PORT
         value: 8080
       - key: DB_HOST
-        fromDatabase:
-          name: finance-tracker-db-new
-          property: host
+        value: ep-patient-cloud-ax2i8f33-pooler.c-4.us-east-2.aws.neon.tech
       - key: DB_PORT
-        fromDatabase:
-          name: finance-tracker-db-new
-          property: port
+        value: 5432
       - key: DB_NAME
-        fromDatabase:
-          name: finance-tracker-db-new
-          property: database
+        value: neondb
       - key: DB_USER
-        fromDatabase:
-          name: finance-tracker-db-new
-          property: user
+        value: neondb_owner
       - key: DB_PASSWORD
-        fromDatabase:
-          name: finance-tracker-db-new
-          property: password
+        value: npg_EsF1Xatv2Smx
       - key: APP_CORS_ALLOWED_ORIGINS
-        sync: false
+        value: http://localhost:5173,https://finance-two-pi.vercel.app
+
 
