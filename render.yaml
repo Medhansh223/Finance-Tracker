@@ -20,6 +20,7 @@ services:
       - key: DB_PASSWORD
         value: npg_EsF1Xatv2Smx
       - key: APP_CORS_ALLOWED_ORIGINS
-        value: http://localhost:5173,https://finance-two-pi.vercel.app
+        value: http://localhost:5173,https://finance-two-pi.vercel.app,https://frontend-green-two-50.vercel.app
+
 
 
