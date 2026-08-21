@@ -2,13 +2,19 @@
 
 A full-stack personal finance application for tracking income and expenses. Users can sign up, log in, and manage their transactions from a React dashboard backed by a Spring Boot API and PostgreSQL database.
 
+## Deployed Application Links
+
+- **Frontend App (Vercel)**: [https://frontend-green-two-50.vercel.app/](https://frontend-green-two-50.vercel.app/)
+- **Backend API (Render)**: [https://finance-tracker-dacv.onrender.com](https://finance-tracker-dacv.onrender.com/)
+- **Production Database (Neon)**: Connected via cloud pooler host
+
 ## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
 | **Frontend** | React 19, TypeScript, Vite, React Router |
 | **Backend** | Java 21, Spring Boot 3.4, Spring Security, Spring Data JPA |
-| **Database** | PostgreSQL 16 |
+| **Database** | PostgreSQL 16 (Local native instance or hosted on Neon Cloud) |
 | **Auth** | Bearer session tokens (stored in DB, validated per request) |
 
 ## Project Structure
@@ -16,7 +22,6 @@ A full-stack personal finance application for tracking income and expenses. User
 ```
 Finance-Tracker/
 ├── backend/                    # Spring Boot REST API
-│   ├── docker-compose.yml      # PostgreSQL container
 │   ├── pom.xml
 │   └── src/
 │       ├── main/java/com/financetracker/
